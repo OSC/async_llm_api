@@ -1,6 +1,7 @@
 # README.md
 
-This project sends chat prompts to an OpenAI API generate endpoint, enabling batch processing of multiple requests.
+This project sends chat prompts to an OpenAI API generate endpoint, enabling batch processing of multiple requests.\
+It is intended as example code and meant to be extended for your specific uses.
 
 ## Installation
 1. Install uv
@@ -19,7 +20,7 @@ python async_api.py --filename prompts.txt --num_requests 10 --models model1 mod
 
 Arguments:\
 --filename - Path to file with prompts, one prompt per line\
---num_requests - Number of requests to send, defaults to all
+--num_requests - Number of requests to send, defaults to all\
 --models - Model names, one or more models must be specified\
 --base_url - Base URL of OpenAI API compliant server\
 --randomize_models - Whether or not use random model from list for each request\
