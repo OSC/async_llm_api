@@ -40,23 +40,35 @@ async def main( prompts: [str], models: [str], base_url: str, token: str, random
 def parse_results(results):
     parsed = ""
     total_durations = []
-
+    total_token_counts = []
     for result in results: #loop over requests
         if result != None: 
             json_strings = result.decode('utf-8').strip().split('\n')
             parsed_jsons = [json.loads(js) for js in json_strings] 
+            result_words = []
             for json_item in parsed_jsons: #loop over streamed jsons
-                if json_item['done'] == True:
+                #print(json_item)
+                if json_item['done'] != True:
+                    #accumulate word from non-final json
+                    result_words.append(json_item['response'])
+                elif json_item['done'] == True:
                     total_durations.append(json_item['total_duration'])  #example timing code
+                    total_token_counts.append(json_item['eval_count'])
                 #your code here
-
+            print(f"Response: {"".join(result_words)}\n")
     #timing info
     total_durations = [dur / (10**9) for dur in total_durations] #convert to seconds
     total_durations.sort()
     print(f"number of requests: {len(results)}")
     print(f"errors: {len(results)-len(total_durations)}")
-    print(f"got durations: {total_durations}")
+    print(f"Total durations: {total_durations}")
     print(f"Mean total duration: {statistics.mean(total_durations)}")
+    print(f"Median total duration: {statistics.median(total_durations)}")
+    print(f"Total token counts: {total_token_counts}")
+    print(f"Token throughput: {sum(total_token_counts) / float(statistics.mean(total_durations))} tokens/sec")
+    print(f"Request throughput: {len(total_token_counts) / float(statistics.mean(total_durations))} requests/sec")
+    
+    
 
     return parsed 
 
@@ -76,7 +88,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_requests', help='Number of prompt requests to send, default is all', type=int)
     parser.add_argument('--models', nargs='+', help='Name of model(s) to use')
     parser.add_argument('--randomize_models', help='Use random model for each request', type=bool, default=False)
-    parser.add_argument('--base_url', help='Base URL to send API requests to', required=True
+    parser.add_argument('--base_url', help='Base URL to send API requests to', required=True)
     parser.add_argument('--api_token', help='API token for authorization')
     args = parser.parse_args()
 
