@@ -40,6 +40,7 @@ async def main( prompts: [str], models: [str], base_url: str, token: str, random
 def parse_results(results):
     parsed = ""
     total_durations = []
+    eval_durations = []
     total_token_counts = []
     for result in results: #loop over requests
         if result != None: 
@@ -54,20 +55,30 @@ def parse_results(results):
                 elif json_item['done'] == True:
                     total_durations.append(json_item['total_duration'])  #example timing code
                     total_token_counts.append(json_item['eval_count'])
+                    eval_durations.append(json_item['eval_duration'])
                 #your code here
             print(f"Response: {"".join(result_words)}\n")
-    #timing info
-    total_durations = [dur / (10**9) for dur in total_durations] #convert to seconds
-    total_durations.sort()
+
+    #process timing info
+    total_durations = [dur / (10**9) for dur in total_durations] 
+    eval_durations = [dur / (10**9) for dur in eval_durations] 
+
     print(f"number of requests: {len(results)}")
     print(f"errors: {len(results)-len(total_durations)}")
+
     print(f"Total durations: {total_durations}")
     print(f"Mean total duration: {statistics.mean(total_durations)}")
     print(f"Median total duration: {statistics.median(total_durations)}")
+
+    print(f"Eval durations: {eval_durations}")
+    print(f"Mean eval duration: {statistics.mean(eval_durations)}")
+    print(f"Median eval duration: {statistics.median(eval_durations)}")
+
     print(f"Total token counts: {total_token_counts}")
-    print(f"Token throughput: {sum(total_token_counts) / float(statistics.mean(total_durations))} tokens/sec")
-    print(f"Request throughput: {len(total_token_counts) / float(statistics.mean(total_durations))} requests/sec")
-    
+    print(f"Token throughput (user): {sum(total_token_counts) / float(statistics.mean(total_durations))} tokens/sec")
+    print(f"Request throughput (user): {len(total_token_counts) / float(statistics.mean(total_durations))} requests/sec")
+    print(f"Token throughput (eval only): {sum(total_token_counts) / float(statistics.mean(eval_durations))} tokens/sec")
+    print(f"Request throughput (eval only): {len(total_token_counts) / float(statistics.mean(eval_durations))} requests/sec")
     
 
     return parsed 

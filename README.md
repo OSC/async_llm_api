@@ -1,6 +1,6 @@
 # README.md
 
-This project sends chat prompts to an OpenAI API generate endpoint, enabling batch processing of multiple requests.\
+This project sends chat prompts to an Ollama API generate endpoint, enabling batch processing of multiple requests.\
 It is intended as example code and meant to be extended for your specific uses.
 
 ## Installation
