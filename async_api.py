@@ -23,17 +23,12 @@ async def fetch( session: aiohttp.ClientSession, prompt: str, models: [str], tok
                                  json=data,
                                  **kwargs)
     data = await resp.read()
-    if not data:
-        return {}
-    else:
-        return data
+    return {} if not data else data
 
 async def main( prompts: [str], models: [str], base_url: str, token: str, randomize_model: bool, **kwargs):
     session_timeout =   aiohttp.ClientTimeout(total=None,sock_connect=300,sock_read=300)
     async with aiohttp.ClientSession(base_url=base_url, timeout=session_timeout) as session:
-        tasks = []
-        for p in prompts:
-            tasks.append(fetch(session=session, prompt=p, models=models, token=token, randomize_model=randomize_model, **kwargs))
+        tasks = [(prompt, fetch(session=session, prompt=prompt, models=models, token=token, randomize_model=randomize_model, **kwargs)) for prompt in prompts]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         return parse_results(results)
 

@@ -1,6 +1,6 @@
 # README.md
 
-This project sends chat prompts to an Ollama API generate endpoint, enabling batch processing of multiple requests.\
+This project sends chat prompts to an OpenAI API completions endpoint, enabling batch processing of multiple requests.\
 It is intended as example code and meant to be extended for your specific uses.
 
 ## Installation
@@ -15,13 +15,12 @@ It is intended as example code and meant to be extended for your specific uses.
 
 ## Usage
 ```
-python async_api.py --filename prompts.txt --num_requests 10 --models model1 model2 --base_url https://your/server/api --randomize_models False --api_token $API_TOKEN 
+python openai_async.py --filename prompts.txt --num_requests 10 --model modelname --base_url https://your/server/v1/ --api_token $API_TOKEN 
 ```
 
 Arguments:\
 --filename - Path to file with prompts, one prompt per line\
 --num_requests - Number of requests to send, defaults to all\
---models - Model names, one or more models must be specified\
---base_url - Base URL of OpenAI API compliant server\
---randomize_models - Whether or not use random model from list for each request\
+--model - Model name, must be specified\
+--base_url - Base URL of OpenAI API compliant server. E.g., https://localhost:$API_PORT/v1/\
 --api-token - JWT token for auth header
