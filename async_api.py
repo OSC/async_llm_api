@@ -15,7 +15,7 @@ async def fetch( session: aiohttp.ClientSession, prompt: str, models: [str], tok
         model = random.choice(models)
     else:
         model = models[0]
-    data={"model": model, "prompt": prompt, "stream": "true"} #TODO make stream setting configurable
+    data={"model": model, "prompt": prompt, "stream": True} #TODO make stream setting configurable
 
     resp = await session.request(method=method, 
                                  url=url, 
@@ -44,20 +44,25 @@ def parse_results(results):
     total_token_counts = []
     for result in results: #loop over requests
         if result != None: 
-            json_strings = result.decode('utf-8').strip().split('\n')
-            parsed_jsons = [json.loads(js) for js in json_strings] 
-            result_words = []
-            for json_item in parsed_jsons: #loop over streamed jsons
-                #print(json_item)
-                if json_item['done'] != True:
-                    #accumulate word from non-final json
-                    result_words.append(json_item['response'])
-                elif json_item['done'] == True:
-                    total_durations.append(json_item['total_duration'])  #example timing code
-                    total_token_counts.append(json_item['eval_count'])
-                    eval_durations.append(json_item['eval_duration'])
-                #your code here
-            print(f"Response: {"".join(result_words)}\n")
+            try:
+                json_strings = result.decode('utf-8').strip().split('\n')
+                parsed_jsons = [json.loads(js) for js in json_strings] 
+                result_words = []
+                for json_item in parsed_jsons: #loop over streamed jsons
+                    #print(json_item)
+                    if json_item['done'] != True:
+                        #accumulate word from non-final json
+                        result_words.append(json_item['response'])
+                    elif json_item['done'] == True:
+                        total_durations.append(json_item['total_duration'])  #example timing code
+                        total_token_counts.append(json_item['eval_count'])
+                        eval_durations.append(json_item['eval_duration'])
+                    #your code here
+                print(f"Response: {''.join(result_words)}\n")
+            except Exception as e:
+                print("parsing error:")
+                print(e)
+                print(result)
 
     #process timing info
     total_durations = [dur / (10**9) for dur in total_durations] 
@@ -114,4 +119,8 @@ if __name__ == '__main__':
     if args.num_requests != None:
         prompts = generate_n(prompts, args.num_requests)
     
+    #add trailing '/' to endpoint if user does not supply it
+    if not args.base_url.endswith("/"):
+        args.base_url = args.base_url+"/"
+
     asyncio.run(main(prompts, models=args.models, base_url=args.base_url, token=args.api_token, randomize_model=args.randomize_models))
