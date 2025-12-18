@@ -22,5 +22,5 @@ Arguments:\
 --filename - Path to file with prompts, one prompt per line\
 --num_requests - Number of requests to send, defaults to all\
 --model - Model name, must be specified\
---base_url - Base URL of OpenAI API compliant server. E.g., https://localhost:$API_PORT/v1/\
+--base_url - Base URL of OpenAI API compliant server. E.g., https://localhost:$API_PORT/v1/ \
 --api-token - JWT token for auth header
