@@ -1,6 +1,6 @@
 # README.md
 
-This project sends chat prompts to an OpenAI API completions or embeddings endpoint, enabling batch processing of multiple requests.\
+This project sends multiple asynchronous requests to OpenAI API 'completions' or 'embeddings' endpoints, enabling batch processing for large request volumes. \
 It is intended as example code and meant to be extended for your specific uses.
 
 ## Installation
@@ -23,5 +23,5 @@ Arguments:\
 --num_requests - Number of requests to send, defaults to all\
 --model - Model name in HuggingFace naming format, must be specified\
 --base_url - Base URL of OpenAI API compliant server. E.g., https://localhost:$API_PORT/v1/ \
---api_token - JWT token for auth header, defaults to 'None'
+--api_token - JWT token for auth header, defaults to 'None' \
 --api_endpoint - 'completions' or 'embeddings', defaults to 'completions'
