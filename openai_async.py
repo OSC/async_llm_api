@@ -2,17 +2,27 @@ import asyncio
 from openai import AsyncOpenAI
 import os
 import argparse
+import time
+import statistics
 
 #MODEL="meta-llama/Llama-3.2-3B"
 
 
-async def get_completion(prompt: str, model: str):
-    print(f"creating completion for model {model} and prompt {prompt}")
-    response = await client.completions.create(
-                        model=model,
-                        prompt=prompt
-                        )
-    return prompt, response 
+async def get_request(api_endpoint: str, prompt: str, model: str):
+    if api_endpoint == 'completions':
+        response = await client.completions.create(
+                            model=model,
+                            prompt=prompt
+                            )
+        return prompt, response 
+    elif api_endpoint == 'embeddings':
+        response = await client.embeddings.create(
+                            input=prompt,
+                            model=model,
+                            )
+        return prompt, response
+    else:
+        raise ValueError("Invalid API endpoint specified")
 
 def get_prompts(filename):
     with open(filename, 'r') as iff:
@@ -36,18 +46,50 @@ async def main(args):
     if args.num_requests != None:
         prompts = generate_n(prompts, args.num_requests)
 
-    tasks = [get_completion(prompt, args.model) for prompt in prompts]
+    start_time = time.time()
+    tasks = [get_request(args.api_endpoint, prompt, args.model) for prompt in prompts]
     results = await asyncio.gather(*tasks)
-    for res in results:
-        print(res)
+    end_time = time.time()
+    print(f"Example result: {results[0]}")
+    prompt_token_counts = []
+
+    if args.api_endpoint == 'completions':
+        #report completion throughput metrics
+        completion_token_counts = []
+        for result in results:
+            completion_token_counts.append(result[1].usage.completion_tokens)
+            prompt_token_counts.append(result[1].usage.prompt_tokens)
+        total_time = end_time - start_time
+        print(f"total time: {total_time}")
+        print(f"Prompt tokens/sec: {sum(prompt_token_counts)/total_time}")
+        print(f"Completion tokens/sec: {sum(completion_token_counts)/total_time}")
+        print(f"Combined tokens/sec: {(sum(completion_token_counts)+sum(prompt_token_counts))/total_time}")
+        print(f"Completions requests/sec: {len(results)/total_time}")
+
+        #report dataset metrics
+        print(f"Median prompt length: {statistics.median(prompt_token_counts)}")
+        print(f"Median completion length: {statistics.median(completion_token_counts)}")
+
+    elif args.api_endpoint == 'embeddings':
+        #report embeddings throughput metrics
+        for result in results:
+            prompt_token_counts.append(result[1].usage.prompt_tokens)
+        total_time = end_time - start_time
+        print(f"Embeddings requests/sec: {len(results)/total_time}")
+        print(f"Embeddings prompt tokens/sec: {sum(prompt_token_counts)/total_time}")
+        print(f"Median prompt length: {statistics.median(prompt_token_counts)}")
+
+
 
 #get args
 parser = argparse.ArgumentParser(description='Send prompts to OpenAI API server')
 parser.add_argument('--filename', help='Input filename, one prompt per line', required=True)
-parser.add_argument('--num_requests', help='Number of prompt requests to send, default is all', type=int)
-parser.add_argument('--model', help='Name of model to use', required=True)
+parser.add_argument('--num_requests', help='Number of prompt requests to send; default is all', type=int)
+parser.add_argument('--model', help='Name of model to use, following HuggingFace naming', required=True)
 parser.add_argument('--base_url', help='Base URL to send API requests to', required=True)
-parser.add_argument('--api_token', help='API token for authorization')
+parser.add_argument('--api_token', help='API token for authorization', default="None")
+parser.add_argument('--api_endpoint', help='API endpoint to send requests to; default is completions', choices=['completions', 'embeddings'], default='completions')
+
 args = parser.parse_args()
 
 #add trailing '/' to endpoint if user does not supply it
