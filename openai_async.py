@@ -24,9 +24,21 @@ async def get_request(api_endpoint: str, prompt: str, model: str):
     else:
         raise ValueError("Invalid API endpoint specified")
 
-def get_prompts(filename):
+def get_prompts(filename, system_prompt_filename):
+    #get system prompt if any
+    if system_prompt_filename != '':
+        if not os.path.exists(system_prompt_filename):
+            parser.error(f"The system prompt file {system_prompt_filename} does not exist!")
+        with open(system_prompt_filename, 'r') as iff:
+            system_prompt = iff.read().strip() + ' '
+    else:
+        system_prompt = ''
+
+    #get prompts
+    if not os.path.exists(args.filename):
+        parser.error(f"The prompts file {args.filename} does not exist!")
     with open(filename, 'r') as iff:
-        return [x.strip() for x in iff.readlines()]
+        return [system_prompt+x.strip() for x in iff.readlines()]
 
 def generate_n(seq: [], n: int) -> []:
     ''' generates n items from a sequence, replicating items as necessary '''
@@ -39,9 +51,7 @@ def generate_n(seq: [], n: int) -> []:
     return n_seq
 
 async def main(args):
-    if not os.path.exists(args.filename):
-        parser.error(f"The file {args.filename} does not exist!")
-    prompts = get_prompts(args.filename)
+    prompts = get_prompts(args.filename, args.system_prompt_filename)
     #by default, send all requests, otherwise use specified num_requests
     if args.num_requests != None:
         prompts = generate_n(prompts, args.num_requests)
@@ -89,6 +99,7 @@ parser.add_argument('--model', help='Name of model to use, following HuggingFace
 parser.add_argument('--base_url', help='Base URL to send API requests to', required=True)
 parser.add_argument('--api_token', help='API token for authorization', default="None")
 parser.add_argument('--api_endpoint', help='API endpoint to send requests to; default is completions', choices=['completions', 'embeddings'], default='completions')
+parser.add_argument('--system_prompt_filename', help='Filename with additional message to prepend to each prompt such as instructions', default='')
 
 args = parser.parse_args()
 
