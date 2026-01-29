@@ -22,6 +22,6 @@ Arguments:\
 --filename - Path to file with prompts, one prompt per line\
 --num_requests - Number of requests to send, defaults to all\
 --model - Model name in HuggingFace naming format, must be specified\
---base_url - Base URL of OpenAI API compliant server. E.g., https://localhost:$API_PORT/v1/ \
+--base_url - Base URL of OpenAI API compliant server. E.g., http://localhost:$API_PORT/v1/ \
 --api_token - JWT token for auth header, defaults to 'None' \
 --api_endpoint - 'completions' or 'embeddings', defaults to 'completions'
