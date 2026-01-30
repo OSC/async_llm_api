@@ -24,7 +24,7 @@ async def get_request(api_endpoint: str, prompt: str, model: str):
     else:
         raise ValueError("Invalid API endpoint specified")
 
-def get_prompts(filename, system_prompt_filename):
+def get_prompts(filename, system_prompt_filename, delim):
     #get system prompt if any
     if system_prompt_filename != '':
         if not os.path.exists(system_prompt_filename):
@@ -38,7 +38,11 @@ def get_prompts(filename, system_prompt_filename):
     if not os.path.exists(args.filename):
         parser.error(f"The prompts file {args.filename} does not exist!")
     with open(filename, 'r') as iff:
-        return [system_prompt+x.strip() for x in iff.readlines()]
+        prompts = iff.read().strip().split(delim)
+        print(prompts)
+        spp = [system_prompt+x.strip() for x in prompts]
+        print(spp)
+        return spp
 
 def generate_n(seq: [], n: int) -> []:
     ''' generates n items from a sequence, replicating items as necessary '''
@@ -51,7 +55,7 @@ def generate_n(seq: [], n: int) -> []:
     return n_seq
 
 async def main(args):
-    prompts = get_prompts(args.filename, args.system_prompt_filename)
+    prompts = get_prompts(args.filename, args.system_prompt_filename, args.delimiter)
     #by default, send all requests, otherwise use specified num_requests
     if args.num_requests != None:
         prompts = generate_n(prompts, args.num_requests)
@@ -100,6 +104,7 @@ parser.add_argument('--base_url', help='Base URL to send API requests to', requi
 parser.add_argument('--api_token', help='API token for authorization', default="None")
 parser.add_argument('--api_endpoint', help='API endpoint to send requests to; default is completions', choices=['completions', 'embeddings'], default='completions')
 parser.add_argument('--system_prompt_filename', help='Filename with additional message to prepend to each prompt such as instructions', default='')
+parser.add_argument('--delimiter', help='Delimiter string for splitting prompts in prompts file, defaults to \n', default='\n')
 
 args = parser.parse_args()
 
